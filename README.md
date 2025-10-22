@@ -2,6 +2,11 @@
 Spoiler detection in movie/tv show reviews using machine learning
 
 ## Quickstart
+0. Prerequisites:
+   - Install Anaconda or Miniconda
+   - Install Git and Git LFS
+   - Run `git lfs install` to set up Git LFS.
+
 1. Clone the repository:
    ```bash
    git clone git@github.com:ayshmnmm/plot-protector.git
@@ -16,7 +21,7 @@ Spoiler detection in movie/tv show reviews using machine learning
    ```
 4. Activate the conda environment:
    ```bash
-   conda activate plot-protector
+   conda activate pp
     ```
 
 ## Project Structure
