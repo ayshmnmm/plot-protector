@@ -208,6 +208,7 @@ __marimo__/
 
 # processed data and trained models
 # data/
-!models/
+models/
 .DS_Store
 Icon
+data/
