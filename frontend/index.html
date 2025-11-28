@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Protector 🎬</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fredoka+One&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cinema-red: #ff3b3b;
+            --popcorn-yellow: #ffd74b;
+            --dark-bg: #120f1f;
+            --light-text: #fefefe;
+            --cartoon-blue: #4aa3ff;
+            --cartoon-outline: #000;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+/* Blur effect when spoiler detected */
+.blurred {
+    filter: blur(6px);
+    transition: filter 0.3s ease-in-out;
+}
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark-bg);
+            background-image: radial-gradient(circle at top, #1e1b2e, #0c0a12);
+            color: var(--light-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Cartoon Clouds */
+        .cloud {
+            position: fixed;
+            top: 10%;
+            width: 200px;
+            height: 80px;
+            background: white;
+            border-radius: 50px;
+            box-shadow: 0 0 0 5px #000;
+            filter: brightness(0.92);
+            animation: float 6s ease-in-out infinite;
+            z-index: -1;
+        }
+        .cloud:before,
+        .cloud:after {
+            content: "";
+            position: absolute;
+            background: white;
+            width: 120px;
+            height: 80px;
+            border-radius: 50px;
+            top: -20px;
+            left: 20px;
+            box-shadow: 0 0 0 5px #000;
+        }
+        .cloud:after {
+            width: 100px;
+            height: 60px;
+            top: 10px;
+            left: auto;
+            right: 20px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+        }
+
+        .cloud.c1 { left: 5%; animation-delay: 0s; }
+        .cloud.c2 { left: 70%; top: 18%; animation-delay: 2s; }
+
+        /* Cartoon Stage */
+        .stage {
+            background: #fff3;
+            padding: 3rem;
+            border-radius: 25px;
+            border: 5px solid var(--cartoon-outline);
+            box-shadow: 10px 10px 0 #000;
+            width: 90%;
+            max-width: 650px;
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(10px);
+            animation: popIn 0.6s ease-out;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.7) rotate(3deg); }
+            to { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 4rem;
+            color: var(--popcorn-yellow);
+            text-shadow: 4px 4px 0 #000;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            color: #ddd;
+            margin-bottom: 2rem;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        /* Comic Book Speech Bubble */
+        textarea {
+            width: 100%;
+            height: 160px;
+            background: #fff;
+            color: #333;
+            font-family: 'Comic Sans MS', 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 4px solid #000;
+            box-shadow: 6px 6px 0 #000;
+            resize: none;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Cartoon Action Button */
+        .action-btn {
+            background-color: var(--cinema-red);
+            color: #fff;
+            border: 4px solid #000;
+            padding: 1rem 2.5rem;
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 6px 6px 0 #000;
+            transition: transform 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1) rotate(-3deg);
+        }
+
+        .action-btn::before {
+            content: "🎬 ";
+        }
+
+        /* Verdict Bubble */
+        .verdict-box {
+            margin-top: 2rem;
+            padding: 1.2rem;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 1.6rem;
+            display: none;
+            border: 4px solid #000;
+            box-shadow: 6px 6px 0 #000;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .spoiler-alert {
+            background-color: #ff8989;
+            color: #000;
+        }
+
+        .spoiler-safe {
+            background-color: #9cff9c;
+            color: #000;
+        }
+
+        /* Loader Reel */
+        .loader {
+            display: none;
+            width: 60px;
+            height: 60px;
+            border: 6px solid #000;
+            border-top: 6px solid var(--popcorn-yellow);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+            
+        @keyframes pop {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.2); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        /* Curtain Reveal */
+        .curtain {
+            position: fixed;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, #8b0000, #b30000, #8b0000);
+            z-index: 200;
+            animation: curtainOpen 2.2s forwards ease-in-out;
+        }
+        .curtain-left { left: 0; border-right: 5px solid #400000; }
+        .curtain-right { right: 0; border-left: 5px solid #400000; }
+        @keyframes curtainOpen {
+            0% { width: 50%; }
+            100% { width: 0%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="curtain curtain-left"></div>
+    <div class="curtain curtain-right"></div>
+
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+
+    <div class="stage">
+        <h1>Plot Protector</h1>
+        <p class="subtitle">Keep the magic alive. Check your comment for spoilers!</p>
+
+        <textarea id="commentInput" placeholder="Type your movie review here..."></textarea>
+
+        <div style="display: flex; gap: 1rem; align-items: center; justify-content: center; margin-bottom: 1rem;">
+            <select id="modelSelect" style="background-color: var(--cartoon-blue); color: #fff; border: 4px solid #000; padding: 1rem 1.5rem; font-family: 'Fredoka One', cursive; font-size: 1.2rem; border-radius: 15px; cursor: pointer; box-shadow: 6px 6px 0 #000; font-weight: bold;">
+                <option value="naive-bayes">Naive Bayes</option>
+                <option value="logistic">Logistic Regression</option>
+                <option value="bert">BERT</option>
+                <option value="deberta">DeBERTa</option>
+                <option value="roberta">RoBERTa</option>
+                <option value="llama-3.1">Llama 3.1</option>
+                <option value="llama-3.2">Llama 3.2</option>
+            </select>
+
+            <button onclick="checkSpoiler()" class="action-btn">ACTION!</button>
+        </div>
+
+        <div id="loader" class="loader"></div>
+
+        <div id="result" class="verdict-box"></div>
+    </div>
+
+<script>
+
+// Remove blur whenever user types or pastes
+document.getElementById('commentInput').addEventListener('input', () => {
+    document.getElementById('commentInput').classList.remove('blurred');
+});
+    async function checkSpoiler() {
+        const input = document.getElementById('commentInput').value;
+        const resultBox = document.getElementById('result');
+        const loader = document.getElementById('loader');
+        const model = document.getElementById('modelSelect').value;
+
+        resultBox.style.display = 'none';
+        resultBox.className = 'verdict-box';
+
+        if (!input.trim()) {
+            alert("🎤 The stage is empty! Write something first.");
+            return;
+        }
+
+        loader.style.display = 'block';
+
+        let verdict;
+
+        // 🔥 Select model
+        if (model.startsWith("llama")) {
+            verdict = await llamaDetectSpoiler(input, model);
+        } else {
+            verdict = await modelDetectSpoiler(input, model);
+        }
+
+        loader.style.display = 'none';
+        resultBox.style.display = 'block';
+
+        // 🔥 Show verdict visually
+        if (verdict === "spoiler") {
+            resultBox.classList.add('spoiler-alert');
+            resultBox.innerHTML = `⚠️ <strong>Spoiler Alert!</strong><br>${model.toUpperCase()} says this is a spoiler!`;
+    document.getElementById('commentInput').classList.add('blurred');
+        } else {
+            resultBox.classList.add('spoiler-safe');
+            resultBox.innerHTML = `🍿 <strong>All Clear!</strong><br>${model.toUpperCase()} says this is safe!`;
+    document.getElementById('commentInput').classList.remove('blurred');
+        }
+    }
+
+    // ------------------------------------
+    // 🔥 BERT Backend API Call
+    // ------------------------------------
+    async function bertDetectSpoiler(text, model) {
+        try {
+            const res = await fetch("http://127.0.0.1:8001/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text, model: model })
+            });
+
+            const data = await res.json();
+
+            return data.is_spoiler ? "spoiler" : "safe";
+
+        } catch (err) {
+            console.error("BERT API Error:", err);
+            alert("Backend error: Is your FastAPI running?");
+            return "safe";
+        }
+    }
+
+    // ------------------------------------
+    // 🔥 LLAMA 3.2 (Ollama) API Call
+    // ------------------------------------
+async function llamaDetectSpoiler(text, model) {
+    console.log("text: " + text + "model: " + model);
+    const response = await fetch("http://127.0.0.1:11434/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            model: model === "llama-3.2" ? "llama3.2:latest" : "llama3.1:8b",
+            prompt: `
+You are a spoiler detection classifier.
+Output ONLY one word: "spoiler" or "safe".
+Text: "${text}"
+Answer:`,
+            stream: false
+        })
+    });
+
+    const data = await response.json();
+    return data.response.trim().toLowerCase();
+}
+
+async function modelDetectSpoiler(text, model) {
+    try {
+        console.log("text: " + text + "model: " + model);
+        const res = await fetch("http://127.0.0.1:8001/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: text, model: model })
+        });
+
+        const data = await res.json();
+        return data.is_spoiler ? "spoiler" : "safe";
+
+    } catch (err) {
+        console.error("API Error:", err);
+        alert("Backend error: Is FastAPI running?");
+        return "safe";
+    }
+}
+
+</script>
